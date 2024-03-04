@@ -1,7 +1,11 @@
+using ImageCompressor.Services;
+using ImageCompressor.Services.Contracts;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IBlobStorage, BlobStorageService>();
 
 var app = builder.Build();
 

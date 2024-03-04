@@ -1,32 +1,43 @@
 ﻿using ImageCompressor.Models;
+using ImageCompressor.Services;
+using ImageCompressor.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace ImageCompressor.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
+        private readonly IBlobStorage _blobStorageService;
+        public HomeController(IBlobStorage blobStorageService)
         {
-            _logger = logger;
+            _blobStorageService= blobStorageService;
         }
 
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        [HttpPost]
+        public async Task<IActionResult> Upload(UploadImageViewModel model)
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            if (model.ImageFile == null || model.ImageFile.Length == 0)
+            {
+                ModelState.AddModelError("ImageFile", "Please select a file.");
+                return View(model);
+            }
+
+            string imageUrl = await _blobStorageService.UploadImageAsync(model.ImageFile);
+            // You can handle the response here, such as displaying the uploaded image URL.
+            return RedirectToAction("Index", "Home");
         }
     }
 }
